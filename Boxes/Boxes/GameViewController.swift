@@ -7,54 +7,40 @@
 //
 
 import UIKit
-import SpriteKit
-import GameplayKit
+import SceneKit
 
-class GameViewController: UIViewController {
+final class GameViewController: UIViewController {
+    // MARK: Properties
+    
+    private let game = Game()
 
+    // MARK: Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Load 'GameScene.sks' as a GKScene. This provides gameplay related content
-        // including entities and graphs.
-        if let scene = GKScene(fileNamed: "GameScene") {
-            
-            // Get the SKScene from the loaded GKScene
-            if let sceneNode = scene.rootNode as! GameScene? {
-                
-                // Copy gameplay related content over to the scene
-                sceneNode.entities = scene.entities
-                sceneNode.graphs = scene.graphs
-                
-                // Set the scale mode to scale to fit the window
-                sceneNode.scaleMode = .aspectFill
-                
-                // Present the scene
-                if let view = self.view as! SKView? {
-                    view.presentScene(sceneNode)
-                    
-                    view.ignoresSiblingOrder = true
-                    
-                    view.showsFPS = true
-                    view.showsNodeCount = true
-                }
-            }
-        }
-    }
-
-    override var shouldAutorotate: Bool {
-        return true
-    }
-
-    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
-        if UIDevice.current.userInterfaceIdiom == .phone {
-            return .allButUpsideDown
-        } else {
-            return .all
-        }
+        // Grab the controller's view as a SceneKit view.
+        guard let scnView = view as? SCNView else { fatalError("Unexpected view class") }
+        
+        // Set our background color to a light gray color.
+        scnView.backgroundColor = UIColor.lightGray
+        
+        // Ensure the view controller can display our game's scene.
+        scnView.scene = game.scene
+        
+        // Ensure the game can manage updates for the scene.
+        scnView.delegate = game
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        scnView.addGestureRecognizer(tap)
     }
 
     override var prefersStatusBarHidden: Bool {
-        return true
+        true
+    }
+    
+    /// Causes the boxes to jump if a tap is detected.
+    @objc private func handleTap(_: UITapGestureRecognizer) {
+        game.jumpBoxes()
     }
 }
